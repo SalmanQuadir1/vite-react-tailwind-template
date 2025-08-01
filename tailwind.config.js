@@ -55,6 +55,7 @@ export default {
         "spin-slow": "spin 3s linear infinite",
         glow: "glow 4s ease-in-out infinite alternate",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "fade-in": "fadeIn 0.8s ease-out", // ✅ Added here
       },
       keyframes: {
         spin: {
@@ -68,6 +69,10 @@ export default {
         "pulse-glow": {
           "0%, 100%": { opacity: "0.5" },
           "50%": { opacity: "0.8" },
+        },
+        fadeIn: { // ✅ New keyframe
+          "0%": { opacity: 0, transform: "translateY(10px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
         },
       },
     },

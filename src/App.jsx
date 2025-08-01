@@ -1,80 +1,111 @@
-import { MdArrowOutward } from "react-icons/md";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+// src/App.jsx
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { ToastContainer } from "react-toastify";
+import { useEffect } from "react";
+import "react-toastify/dist/ReactToastify.css";
 
-function App() {
+import { setUser, logout } from "./features/authSlice";
+import { jwtDecode } from "jwt-decode";
+
+// Pages
+import Dashboard from "./pages/Dashboard";
+import Register from "./pages/Register";
+import DashboardHome from "./pages/DashboardHome";
+import Login from "./pages/Login";
+import AddEmployee from "./pages/Employee/AddEmployee";
+import ViewEmployees from "./pages/Employee/ViewEmployees";
+import UpdateEmployee from "./pages/Employee/UpdateEmployee";
+import AddCompany from "./pages/Company/AddCompany";
+import Department from "./pages/Department/Department";
+import UpdateDepartment from "./pages/Department/UpdateDepartment";
+import AddAttendance from "./pages/Attendance/AddAttendance";
+import ViewAttendance from "./pages/Attendance/ViewAttendance";
+import ChangePassword from "./pages/user/ChangePassword";
+import Profile from "./pages/user/Profile";
+
+export default function App() {
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.auth.token);
+
+  // Decode token and set user on app load
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if (storedToken) {
+      try {
+
+        const decoded = jwtDecode(storedToken);
+        const currentTime = Date.now() / 1000;
+        if (decoded.exp < currentTime) {
+          dispatch(logout());
+        } else {
+          // If your token payload includes user data
+          dispatch(setUser(JSON.parse(storedUser)));
+        }
+      } catch (err) {
+        dispatch(logout());
+      }
+    }
+  }, [dispatch]);
+
   return (
-    <div className="flex flex-col items-center max-w-screen h-dvh text-center pt-40">
-      <div className="flex">
-        <a href="https://vite.dev" target="_blank">
-          <img
-            src={viteLogo}
-            className="h-32 p-6 transition-[filter] duration-300 will-change-[filter] hover:filter hover:drop-shadow-[0_0_2em_#646cffaa]"
-            alt="Vite logo"
-          />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img
-            src={reactLogo}
-            className="h-32 p-6 transition-[filter] duration-300 will-change-[filter] hover:filter hover:drop-shadow-[0_0_2em_#61dafbaa] animate-spin-slow"
-            alt="React logo"
-          />
-        </a>
-      </div>
-      <h1 className="sm:text-5xl text-3xl font-bold tracking-tight md:text-5xl relative">
-        <span className="relative z-10 text-2xl">
-          Vite + React + Percept UI
-        </span>
-        <span
-          className="absolute inset-0 animate-pulse-glow bg-gradient-to-r from-blue-500/60 to-pink-500/60 blur-xl"
-          aria-hidden="true"
-        ></span>
-      </h1>
-      <h1 className="text-xl font-bold my-4">
-        This project is bootstrapped with Tailwind CSS and Percept UI
-      </h1>
-      <div className="p-[2em]">
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="text-slate-400">
-        Click on the Vite and React logos to learn more
-      </p>
-      <div className="flex items-center justify-center gap-3">
-        <a
-          className="flex flex-col items-start justify-center h-24 p-3 border rounded-lg hover:bg-slate-900 mt-5 min-w-40 relative"
-          href="https://perceptui.vercel.app"
-          target="_blank"
+    <>
+      {/* ToastContainer to show global toasts */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+
+      <Routes>
+        {/* Redirect root path based on auth token */}
+        <Route
+          path="/"
+          element={
+            token ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+
+        {/* Protected Dashboard Routes */}
+        <Route
+          path="/dashboard"
+          element={token ? <Dashboard /> : <Navigate to="/login" replace />}
         >
-          Learn More About
-          <span className="font-bold relative w-full text-start">
-            PERCEPT UI{" "}
-            <MdArrowOutward className="absolute top-1 right-1 text-xl" />
-          </span>
-          <span
-            className="absolute inset-0 animate-pulse-glow bg-gradient-to-r from-blue-500/60 to-pink-500/60 blur-2xl"
-            aria-hidden="true"
-          ></span>
-        </a>
-        <a
-          className="flex flex-col items-start justify-center h-24 p-3 border rounded-lg hover:bg-slate-900 mt-5 relative min-w-40"
-          href="https://github.com/perceptui/ui"
-          target="_blank"
-        >
-          Checkout Us On
-          <span className="font-bold relative w-full text-start">
-            GITHUB
-            <MdArrowOutward className="absolute top-1 right-1 text-xl" />
-          </span>
-          <span
-            className="absolute inset-0 animate-pulse-glow bg-gradient-to-r from-blue-500/60 to-pink-500/60 blur-2xl"
-            aria-hidden="true"
-          ></span>
-        </a>
-      </div>
-    </div>
+          <Route index element={<DashboardHome />} />
+          <Route path="employee/add" element={<AddEmployee />} />
+          <Route path="employee/view" element={<ViewEmployees />} />
+          <Route path="employee/edit/:id" element={<UpdateEmployee />} />
+          {/* Company */}
+          <Route path="company/add" element={<AddCompany />} />
+          <Route path="department/add" element={<Department />} />
+          <Route path="department/edit/:id" element={<UpdateDepartment />} />
+          {/* Attendance */}
+          <Route path="attendance/add" element={<AddAttendance />} />
+          <Route path="attendance/view" element={<ViewAttendance />} />
+          {/* User */}
+          <Route path="profile" element={<Profile />} />
+        </Route>
+
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
-
-export default App;
